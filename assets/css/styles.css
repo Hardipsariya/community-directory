@@ -1,0 +1,28 @@
+/* Custom styles for Community Directory plugin */
+#cd-family-tree {
+    width: 100%;
+    overflow: auto;
+}
+
+.family-member {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.node {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.node .title {
+    font-weight: bold;
+}
+
+.node .desc {
+    font-size: 0.8em;
+}
