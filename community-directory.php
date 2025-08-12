@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Plugin Name: Community Directory
- * Description: A WordPress plugin for caste/family-based registration and display with frontend and backend functionality.
+ * Plugin Name: Full Functional Community Directory
+ * Description: Ragistration Working fine. LIsting page working fine, admin side working fine. RTUT
  * Version: 1.0.0
- * Author: Your Name
+ * Author: Astrid Web Technology 
  * License: GPL-2.0+
- * Text Domain: community-directory
+ * Text Domain: astridtechnology.com
  */
 
 if (! defined('ABSPATH')) {
@@ -90,10 +90,38 @@ function cd_enqueue_scripts()
     // Enqueue jQuery validation for form.
     wp_enqueue_script('cd-jquery-validate', 'https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js', array('jquery'), '1.19.5', true);
 
-    // Enqueue custom scripts and styles.
-    wp_enqueue_style('cd-styles', CD_PLUGIN_URL . 'assets/css/styles.css', array(), '1.0.0');
-    wp_enqueue_script('cd-frontend', CD_PLUGIN_URL . 'assets/js/frontend.js', array('jquery', 'cd-jquery-validate'), '1.0.0', true);
-    wp_enqueue_script('cd-family-tree', CD_PLUGIN_URL . 'assets/js/family-tree.js', array('cd-treant'), '1.0.0', true);
+    // // Enqueue custom scripts and styles.
+    // wp_enqueue_style('cd-styles', CD_PLUGIN_URL . 'assets/css/styles.css', array(), '1.0.0');
+    // wp_enqueue_script('cd-frontend', CD_PLUGIN_URL . 'assets/js/frontend.js', array('jquery', 'cd-jquery-validate'), '1.0.0', true);
+    // wp_enqueue_script('cd-family-tree', CD_PLUGIN_URL . 'assets/js/family-tree.js', array('cd-treant'), '1.0.0', true);
+
+
+
+    // Enqueue custom scripts and styles with automatic versioning
+    wp_enqueue_style(
+        'cd-styles',
+        CD_PLUGIN_URL . 'assets/css/styles.css',
+        array(),
+        filemtime(CD_PLUGIN_DIR . 'assets/css/styles.css')
+    );
+
+    wp_enqueue_script(
+        'cd-frontend',
+        CD_PLUGIN_URL . 'assets/js/frontend.js',
+        array('jquery', 'cd-jquery-validate'),
+        filemtime(CD_PLUGIN_DIR . 'assets/js/frontend.js'),
+        true
+    );
+
+    wp_enqueue_script(
+        'cd-family-tree',
+        CD_PLUGIN_URL . 'assets/js/family-tree.js',
+        array('cd-treant'),
+        filemtime(CD_PLUGIN_DIR . 'assets/js/family-tree.js'),
+        true
+    );
+
+
 
     // Localize script for AJAX.
     wp_localize_script('cd-frontend', 'cd_ajax', array(

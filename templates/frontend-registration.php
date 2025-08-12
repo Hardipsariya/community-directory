@@ -6,7 +6,7 @@
 
         <h3 class="mb-2 text-xl"><?php _e('Head of Family Details', CD_TEXT_DOMAIN); ?></h3>
         <div class="mb-4">
-            <label class="block"><?php _e('Name', CD_TEXT_DOMAIN); ?><span EFI class="text-red-500">*</span></label>
+            <label class="block"><?php _e('Name', CD_TEXT_DOMAIN); ?><span class="text-red-500">*</span></label>
             <input type="text" name="cd_head_details[name]" required class="p-2 border w-full">
         </div>
         <div class="mb-4">
@@ -22,6 +22,15 @@
             <label class="block"><?php _e('Full Address', CD_TEXT_DOMAIN); ?><span class="text-red-500">*</span></label>
             <textarea name="cd_head_details[address]" required class="p-2 border w-full"></textarea>
         </div>
+
+
+
+        <div class="mb-4">
+            <label class="block"><?php _e('City', CD_TEXT_DOMAIN); ?><span class="text-red-500">*</span></label>
+            <input type="text" name="cd_head_details[city]" required class="p-2 border w-full">
+        </div>
+
+
         <div class="mb-4">
             <label class="block"><?php _e('Education', CD_TEXT_DOMAIN); ?><span class="text-red-500">*</span></label>
             <select name="cd_head_details[education]" required class="p-2 border w-full">
@@ -95,7 +104,7 @@
                         <option value="bachelor"><?php _e('Bachelor', CD_TEXT_DOMAIN); ?></option>
                         <option value="master"><?php _e('Master', CD_TEXT_DOMAIN); ?></option>
                         <option value="phd"><?php _e('PhD', CD_TEXT_DOMAIN); ?></option>
-                    </select></ رف_0;education">
+                    </select>
                 </p>
                 <p><label class="block"><?php _e('Occupation', CD_TEXT_DOMAIN); ?><span
                             class="text-red-500">*</span></label>
@@ -107,7 +116,7 @@
                 </p>
                 <p><label class="block"><?php _e('Photo', CD_TEXT_DOMAIN); ?></label>
                     <input type="file" name="cd_family_members[0][photo]" accept="image/*"
-                        class="p- p-2 border w-full Shedding">
+                        class="p-2 border w-full">
                 </p>
             </div>
         </div>
@@ -118,17 +127,16 @@
     </form>
 </div>
 <script>
-jQuery(document).ready(function($) {
-    // Toggle Job/Business fields
-    $('input[name="cd_head_details[occupation_type]"]').change(function() {
-        if ($(this).val() === 'job') {
-            $('#cd-job-fields').removeClass('hidden');
-            $('#cd-business-fields').addClass('hidden');
-        } else {
-            $('#cd-job-fields').addClass('hidden');
-            $('#cd-business-fields').removeClass('hidden');
-        }
+    jQuery(document).ready(function($) {
+        // Toggle Job/Business fields
+        $('input[name="cd_head_details[occupation_type]"]').change(function() {
+            if ($(this).val() === 'job') {
+                $('#cd-job-fields').removeClass('hidden');
+                $('#cd-business-fields').addClass('hidden');
+            } else {
+                $('#cd-job-fields').addClass('hidden');
+                $('#cd-business-fields').removeClass('hidden');
+            }
+        });
     });
-});
 </script>
-?>

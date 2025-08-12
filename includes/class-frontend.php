@@ -31,11 +31,42 @@ class CD_Frontend
 
     public static function handle_form_submission()
     {
-        if (isset($_POST['cd_registration_nonce']) && wp_verify_nonce($_POST['cd_registration kérd_0;registration_nonce'], 'cd_registration')) {
+        if (isset($_POST['cd_registration_nonce']) && wp_verify_nonce($_POST['cd_registration_nonce'], 'cd_registration')) {
             $head_details = array_map('sanitize_text_field', wp_unslash($_POST['cd_head_details']));
-            $family_members = array_map(function ($member) {
+            $family_members = isset($_POST['cd_family_members']) ? array_map(function ($member) {
                 return array_map('sanitize_text_field', wp_unslash($member));
-            }, $_POST['cd_family_members']);
+            }, $_POST['cd_family_members']) : array();
+
+            // Extract city from address (simplified; assumes address contains city).
+            $head_details['city'] = ! empty($head_details['address']) ? strtok($head_details['address'], ',') : '';
+
+            // Handle profile picture upload.
+            if (! empty($_FILES['cd_head_details']['name']['profile_picture'])) {
+                require_once ABSPATH . 'wp-admin/includes/file.php';
+                require_once ABSPATH . 'wp-admin/includes/media.php';
+                require_once ABSPATH . 'wp-admin/includes/image.php';
+                $attachment_id = media_handle_upload('cd_head_details[profile_picture]', 0);
+                if (! is_wp_error($attachment_id)) {
+                    $head_details['profile_picture_id'] = $attachment_id;
+                }
+            }
+
+            // Handle family member photo uploads.
+            foreach ($_FILES['cd_family_members']['name'] as $index => $data) {
+                if (! empty($data['photo'])) {
+                    $file = array(
+                        'name'     => $_FILES['cd_family_members']['name'][$index]['photo'],
+                        'type'     => $_FILES['cd_family_members']['type'][$index]['photo'],
+                        'tmp_name' => $_FILES['cd_family_members']['tmp_name'][$index]['photo'],
+                        'error'    => $_FILES['cd_family_members']['error'][$index]['photo'],
+                        'size'     => $_FILES['cd_family_members']['size'][$index]['photo'],
+                    );
+                    $attachment_id = media_handle_upload('cd_family_members[' . $index . '][photo]', 0);
+                    if (! is_wp_error($attachment_id)) {
+                        $family_members[$index]['photo_id'] = $attachment_id;
+                    }
+                }
+            }
 
             $post_id = wp_insert_post(array(
                 'post_type'   => 'family_head',
@@ -46,6 +77,7 @@ class CD_Frontend
             if ($post_id) {
                 update_post_meta($post_id, 'cd_head_details', $head_details);
                 update_post_meta($post_id, 'cd_family_members', $family_members);
+                set_transient('cd_form_success', __('Family registered successfully!', CD_TEXT_DOMAIN), 30);
                 wp_redirect(home_url('/family-listing'));
                 exit;
             }
