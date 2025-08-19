@@ -18,6 +18,16 @@ class CD_Frontend
     public static function render_registration_form()
     {
         ob_start();
+
+        // Display success message if form was submitted
+        if (get_transient('cd_form_success')) {
+            $message = get_transient('cd_form_success');
+            delete_transient('cd_form_success');
+            echo '<div class="bg-green-100 mb-4 px-4 py-3 border border-green-400 rounded text-green-700" role="alert">';
+            echo esc_html($message);
+            echo '</div>';
+        }
+
         include CD_PLUGIN_DIR . 'templates/frontend-registration.php';
         return ob_get_clean();
     }
@@ -37,8 +47,7 @@ class CD_Frontend
                 return array_map('sanitize_text_field', wp_unslash($member));
             }, $_POST['cd_family_members']) : array();
 
-            // Extract city from address (simplified; assumes address contains city).
-            $head_details['city'] = ! empty($head_details['address']) ? strtok($head_details['address'], ',') : '';
+
 
             // Handle profile picture upload.
             if (! empty($_FILES['cd_head_details']['name']['profile_picture'])) {
@@ -70,15 +79,16 @@ class CD_Frontend
 
             $post_id = wp_insert_post(array(
                 'post_type'   => 'family_head',
-                'post_status' => 'publish',
+                'post_status' => 'pending',
                 'post_title'  => $head_details['name'],
             ));
 
             if ($post_id) {
                 update_post_meta($post_id, 'cd_head_details', $head_details);
                 update_post_meta($post_id, 'cd_family_members', $family_members);
-                set_transient('cd_form_success', __('Family registered successfully!', CD_TEXT_DOMAIN), 30);
-                wp_redirect(home_url('/family-listing'));
+                update_post_meta($post_id, 'cd_approved', '0'); // 0 = pending, 1 = approved
+                set_transient('cd_form_success', __('Family registration submitted successfully! It will appear after admin approval.', CD_TEXT_DOMAIN), 30);
+                wp_redirect(home_url('/family-registration'));
                 exit;
             }
         }
