@@ -10,6 +10,8 @@ class CD_CPT
         add_action('init', array(__CLASS__, 'register_cpt'));
         add_action('add_meta_boxes', array(__CLASS__, 'add_meta_boxes'));
         add_action('save_post', array(__CLASS__, 'save_meta'));
+        add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_scripts'));
+        add_action('transition_post_status', array(__CLASS__, 'handle_status_transition'), 10, 3);
     }
 
     public static function register_cpt()
@@ -54,6 +56,14 @@ class CD_CPT
             'normal',
             'high'
         );
+        add_meta_box(
+            'cd_approval_status',
+            __('Approval Status', CD_TEXT_DOMAIN),
+            array(__CLASS__, 'render_approval_meta_box'),
+            'family_head',
+            'side',
+            'high'
+        );
     }
 
     public static function render_head_meta_box($post)
@@ -61,9 +71,11 @@ class CD_CPT
         wp_nonce_field('cd_save_meta', 'cd_nonce');
         $head_details = get_post_meta($post->ID, 'cd_head_details', true) ?: array();
 ?>
-        <p><label><?php _e('Name', CD_TEXT_DOMAIN); ?>: <input type="text" name="cd_head_details[name]"
+        <p><label><?php _e('Family Name', CD_TEXT_DOMAIN); ?>: <input type="text" name="cd_head_details[family_name]"
+                    value="<?php echo esc_attr($head_details['family_name'] ?? ''); ?>" class="widefat" required></label></p>
+        <p><label><?php _e('Family Head Name', CD_TEXT_DOMAIN); ?>: <input type="text" name="cd_head_details[name]"
                     value="<?php echo esc_attr($head_details['name'] ?? ''); ?>" class="widefat" required></label></p>
-        <p><label><?php _e('Mobile Number', CD_TEXT_DOMAIN); ?>: <input type="text" name="cd_head_details[mobile]"
+        <p><label><?php _e('Contact Number', CD_TEXT_DOMAIN); ?>: <input type="text" name="cd_head_details[mobile]"
                     value="<?php echo esc_attr($head_details['mobile'] ?? ''); ?>" class="widefat" required></label></p>
         <p><label><?php _e('Email', CD_TEXT_DOMAIN); ?>: <input type="email" name="cd_head_details[email]"
                     value="<?php echo esc_attr($head_details['email'] ?? ''); ?>" class="widefat"></label></p>
@@ -74,14 +86,12 @@ class CD_CPT
         <p><label><?php _e('Education', CD_TEXT_DOMAIN); ?>:
                 <select name="cd_head_details[education]" class="widefat" required>
                     <option value=""><?php _e('Select Education', CD_TEXT_DOMAIN); ?></option>
-                    <option value="high_school" <?php selected($head_details['education'] ?? '', 'high_school'); ?>>
-                        <?php _e('High School', CD_TEXT_DOMAIN); ?></option>
-                    <option value="bachelor" <?php selected($head_details['education'] ?? '', 'bachelor'); ?>>
-                        <?php _e('Bachelor', CD_TEXT_DOMAIN); ?></option>
-                    <option value="master" <?php selected($head_details['education'] ?? '', 'master'); ?>>
-                        <?php _e('Master', CD_TEXT_DOMAIN); ?></option>
-                    <option value="phd" <?php selected($head_details['education'] ?? '', 'phd'); ?>>
-                        <?php _e('PhD', CD_TEXT_DOMAIN); ?></option>
+                    <?php
+                    $education_options = get_option('cd_education_options', array('High School', 'Bachelor', 'Master', 'PhD'));
+                    foreach ($education_options as $option) {
+                        echo '<option value="' . esc_attr($option) . '" ' . selected($head_details['education'] ?? '', $option, false) . '>' . esc_html($option) . '</option>';
+                    }
+                    ?>
                 </select></label></p>
         <p><label><?php _e('Occupation Type', CD_TEXT_DOMAIN); ?>:
                 <select name="cd_head_details[occupation_type]" class="widefat" required>
@@ -102,32 +112,113 @@ class CD_CPT
         <div id="cd-business-fields"
             class="<?php echo (($head_details['occupation_type'] ?? '') === 'business') ? '' : 'hidden'; ?>">
             <p><label><?php _e('Business Name', CD_TEXT_DOMAIN); ?>: <input type="text" name="cd_head_details[business_name]"
-                        value="<?php echo esc_attr($head_details['business_name'] ?? ''); ?>" class="widefat"></label></p>
-            <p><label><?php _e('Business Type', CD_TEXT_DOMAIN); ?>:
-                    <select name="cd_head_details[business_type]" class="widefat">
-                        <option value=""><?php _e('Select Business Type', CD_TEXT_DOMAIN); ?></option>
-                        <option value="furniture" <?php selected($head_details['business_type'] ?? '', 'furniture'); ?>>
-                            <?php _e('Furniture', CD_TEXT_DOMAIN); ?></option>
-                        <option value="tailor" <?php selected($head_details['business_type'] ?? '', 'tailor'); ?>>
-                            <?php _e('Tailor', CD_TEXT_DOMAIN); ?></option>
+                        value="<?php echo esc_attr($head_details['business_name'] ?? ''); ?>" class="widefat" required></label></p>
+            <p><label><?php _e('Business Industry', CD_TEXT_DOMAIN); ?>:
+                    <select name="cd_head_details[business_type]" class="widefat" required>
+                        <option value=""><?php _e('Select Business Industry', CD_TEXT_DOMAIN); ?></option>
+                        <?php
+                        $business_industry_options = get_option('cd_business_industry_options', array('Furniture', 'Tailor'));
+                        foreach ($business_industry_options as $option) {
+                            echo '<option value="' . esc_attr($option) . '" ' . selected($head_details['business_type'] ?? '', $option, false) . '>' . esc_html($option) . '</option>';
+                        }
+                        ?>
                     </select></label></p>
-            <p><label><?php _e('Business Address', CD_TEXT_DOMAIN); ?>: <textarea name="cd_head_details[business_address]"
-                        class="widefat"><?php echo esc_textarea($head_details['business_address'] ?? ''); ?></textarea></label>
-            </p>
-            <p><label><?php _e('Business Contact Number', CD_TEXT_DOMAIN); ?>: <input type="text"
-                        name="cd_head_details[business_contact]"
-                        value="<?php echo esc_attr($head_details['business_contact'] ?? ''); ?>" class="widefat"></label></p>
+            <p><label><?php _e('Business City', CD_TEXT_DOMAIN); ?>: <input type="text" name="cd_head_details[business_city]"
+                        value="<?php echo esc_attr($head_details['business_city'] ?? ''); ?>" class="widefat" required></label></p>
+            <p><label><?php _e('Business Website', CD_TEXT_DOMAIN); ?>: <input type="text" name="cd_head_details[business_website]"
+                        value="<?php echo esc_attr($head_details['business_website'] ?? ''); ?>" class="widefat"></label></p>
+            <p><label><?php _e('Business Brochure (PDF below 5 MB)', CD_TEXT_DOMAIN); ?>: <button type="button" class="button" id="upload-business-brochure"><?php _e('Choose File', CD_TEXT_DOMAIN); ?></button></label></p>
+            <input type="hidden" name="cd_head_details[business_brochure_id]" id="business-brochure-id" value="<?php echo esc_attr($head_details['business_brochure_id'] ?? ''); ?>">
+            <div id="current-brochure">
+                <?php if (!empty($head_details['business_brochure_id'])): ?>
+                    <p><?php _e('Current Brochure', CD_TEXT_DOMAIN); ?>: <a href="<?php echo wp_get_attachment_url($head_details['business_brochure_id']); ?>" target="_blank"><?php _e('View', CD_TEXT_DOMAIN); ?></a></p>
+                <?php endif; ?>
+            </div>
         </div>
-        <p><label><?php _e('Profile Picture ID', CD_TEXT_DOMAIN); ?>: <input type="text"
-                    name="cd_head_details[profile_picture_id]"
-                    value="<?php echo esc_attr($head_details['profile_picture_id'] ?? ''); ?>" class="widefat" readonly></label>
-        </p>
+        <p><label><?php _e('Family Photo', CD_TEXT_DOMAIN); ?>: <button type="button" class="button" id="upload-profile-picture"><?php _e('Choose File', CD_TEXT_DOMAIN); ?></button></label></p>
+        <input type="hidden" name="cd_head_details[profile_picture_id]" id="profile-picture-id" value="<?php echo esc_attr($head_details['profile_picture_id'] ?? ''); ?>">
+        <div id="current-photo">
+            <?php if (!empty($head_details['profile_picture_id'])): ?>
+                <p><?php _e('Current Photo', CD_TEXT_DOMAIN); ?>: <img src="<?php echo wp_get_attachment_url($head_details['profile_picture_id']); ?>" alt="Profile Picture" style="max-width: 100px;"></p>
+            <?php endif; ?>
+        </div>
+        <p><label><?php _e('Mosal Category', CD_TEXT_DOMAIN); ?>: <input type="text" name="cd_head_details[mosal_category]"
+                    value="<?php echo esc_attr($head_details['mosal_category'] ?? ''); ?>" class="widefat"></label></p>
+        <script>
+        jQuery(document).ready(function($) {
+            function toggleOccupationFields() {
+                var occupationType = $('select[name="cd_head_details[occupation_type]"]').val();
+                if (occupationType === 'job') {
+                    $('#cd-job-fields').show();
+                    $('#cd-business-fields').hide();
+                    $('#cd-business-fields input, #cd-business-fields select').prop('required', false);
+                } else if (occupationType === 'business') {
+                    $('#cd-job-fields').hide();
+                    $('#cd-business-fields').show();
+                    $('#cd-business-fields input[name="cd_head_details[business_name]"]').prop('required', true);
+                    $('#cd-business-fields select[name="cd_head_details[business_type]"]').prop('required', true);
+                    $('#cd-business-fields input[name="cd_head_details[business_city]"]').prop('required', true);
+                } else {
+                    $('#cd-job-fields').hide();
+                    $('#cd-business-fields').hide();
+                    $('#cd-business-fields input, #cd-business-fields select').prop('required', false);
+                }
+            }
+            $('select[name="cd_head_details[occupation_type]"]').change(toggleOccupationFields);
+            toggleOccupationFields(); // Initial call
+
+            // Media uploader for profile picture
+            $('#upload-profile-picture').click(function(e) {
+                e.preventDefault();
+                var custom_uploader = wp.media({
+                    title: 'Choose Image',
+                    button: {
+                        text: 'Choose Image'
+                    },
+                    multiple: false,
+                    library: {
+                        type: 'image'
+                    }
+                })
+                .on('select', function() {
+                    var attachment = custom_uploader.state().get('selection').first().toJSON();
+                    $('#profile-picture-id').val(attachment.id);
+                    $('#current-photo').html('<p><?php _e('Current Photo', CD_TEXT_DOMAIN); ?>: <img src="' + attachment.url + '" alt="Profile Picture" style="max-width: 100px;"></p>');
+                })
+                .open();
+            });
+
+            // Media uploader for business brochure
+            $('#upload-business-brochure').click(function(e) {
+                e.preventDefault();
+                var custom_uploader = wp.media({
+                    title: 'Choose PDF',
+                    button: {
+                        text: 'Choose PDF'
+                    },
+                    multiple: false,
+                    library: {
+                        type: 'application/pdf'
+                    }
+                })
+                .on('select', function() {
+                    var attachment = custom_uploader.state().get('selection').first().toJSON();
+                    $('#business-brochure-id').val(attachment.id);
+                    $('#current-brochure').html('<p><?php _e('Current Brochure', CD_TEXT_DOMAIN); ?>: <a href="' + attachment.url + '" target="_blank"><?php _e('View', CD_TEXT_DOMAIN); ?></a></p>');
+                })
+                .open();
+            });
+        });
+        </script>
     <?php
     }
 
     public static function render_members_meta_box($post)
     {
         $members = get_post_meta($post->ID, 'cd_family_members', true) ?: array();
+        if (empty($members)) {
+            $members = array(array()); // Ensure at least one empty member
+        }
     ?>
         <div id="cd-family-members-admin">
             <?php foreach ($members as $index => $member) : ?>
@@ -143,36 +234,49 @@ class CD_CPT
                                 <option value="female" <?php selected($member['gender'] ?? '', 'female'); ?>>
                                     <?php _e('Female', CD_TEXT_DOMAIN); ?></option>
                             </select></label></p>
-                    <p><label><?php _e('Date of Birth', CD_TEXT_DOMAIN); ?>: <input type="date"
-                                name="cd_family_members[<?php echo $index; ?>][dob]"
-                                value="<?php echo esc_attr($member['dob'] ?? ''); ?>" class="widefat"></label></p>
-                    <p><label><?php _e('Education', CD_TEXT_DOMAIN); ?>:
-                            <select name="cd_family_members[<?php echo $index; ?>][education]" class="widefat">
-                                <option value=""><?php _e('Select Education', CD_TEXT_DOMAIN); ?></option>
-                                <option value="high_school" <?php selected($member['education'] ?? '', 'high_school'); ?>>
-                                    <?php _e('High School', CD_TEXT_DOMAIN); ?></option>
-                                <option value="bachelor" <?php selected($member['education'] ?? '', 'bachelor'); ?>>
-                                    <?php _e('Bachelor', CD_TEXT_DOMAIN); ?></option>
-                                <option value="master" <?php selected($member['education'] ?? '', 'master'); ?>>
-                                    <?php _e('Master', CD_TEXT_DOMAIN); ?></option>
-                                <option value="phd" <?php selected($member['education'] ?? '', 'phd'); ?>>
-                                    <?php _e('PhD', CD_TEXT_DOMAIN); ?></option>
-                            </select></label></p>
-                    <p><label><?php _e('Occupation', CD_TEXT_DOMAIN); ?>: <input type="text"
-                                name="cd_family_members[<?php echo $index; ?>][occupation]"
-                                value="<?php echo esc_attr($member['occupation'] ?? ''); ?>" class="widefat"></label></p>
                     <p><label><?php _e('Relation with Head', CD_TEXT_DOMAIN); ?>: <input type="text"
                                 name="cd_family_members[<?php echo $index; ?>][relation]"
                                 value="<?php echo esc_attr($member['relation'] ?? ''); ?>" class="widefat"></label></p>
-                    <p><label><?php _e('Photo ID', CD_TEXT_DOMAIN); ?>: <input type="text"
-                                name="cd_family_members[<?php echo $index; ?>][photo_id]"
-                                value="<?php echo esc_attr($member['photo_id'] ?? ''); ?>" class="widefat" readonly></label></p>
                     <button type="button" class="remove-member button"><?php _e('Remove Member', CD_TEXT_DOMAIN); ?></button>
                 </div>
             <?php endforeach; ?>
             <button type="button" class="add-member button"><?php _e('Add Member', CD_TEXT_DOMAIN); ?></button>
         </div>
+        <script>
+        jQuery(document).ready(function($) {
+            var memberIndex = <?php echo count($members); ?>;
+
+            $('#cd-family-members-admin').on('click', '.add-member', function() {
+                var newMember = $('.family-member').first().clone();
+                newMember.find('input, select').val('').attr('name', function(i, name) {
+                    return name.replace(/\[\d+\]/, '[' + memberIndex + ']');
+                });
+                $('#cd-family-members-admin .add-member').before(newMember);
+                memberIndex++;
+            });
+
+            $('#cd-family-members-admin').on('click', '.remove-member', function() {
+                if ($('.family-member').length > 1) {
+                    $(this).closest('.family-member').remove();
+                } else {
+                    alert('<?php _e('At least one family member is required.', CD_TEXT_DOMAIN); ?>');
+                }
+            });
+        });
+        </script>
 <?php
+    }
+
+    public static function render_approval_meta_box($post)
+    {
+        $approved = get_post_meta($post->ID, 'cd_approved', true);
+        $approved = $approved === '1' ? '1' : '0';
+    ?>
+        <p>
+            <label style="display: inline-block; margin-right: 15px;"><input type="radio" name="cd_approval_status" value="1" <?php checked($approved, '1'); ?>> <?php _e('Approved', CD_TEXT_DOMAIN); ?></label>
+            <label style="display: inline-block;"><input type="radio" name="cd_approval_status" value="0" <?php checked($approved, '0'); ?>> <?php _e('Pending', CD_TEXT_DOMAIN); ?></label>
+        </p>
+    <?php
     }
 
     public static function save_meta($post_id)
@@ -181,7 +285,10 @@ class CD_CPT
             return;
         }
         if (isset($_POST['cd_head_details'])) {
-            $head_details = array_map('sanitize_text_field', wp_unslash($_POST['cd_head_details']));
+            $head_details = get_post_meta($post_id, 'cd_head_details', true) ?: array();
+            $new_head_details = array_map('sanitize_text_field', wp_unslash($_POST['cd_head_details']));
+            $head_details = array_merge($head_details, $new_head_details);
+
             update_post_meta($post_id, 'cd_head_details', $head_details);
         }
         if (isset($_POST['cd_family_members'])) {
@@ -190,12 +297,42 @@ class CD_CPT
             }, $_POST['cd_family_members']);
             update_post_meta($post_id, 'cd_family_members', $members);
         }
+        if (isset($_POST['cd_approval_status'])) {
+            $approval_status = sanitize_text_field($_POST['cd_approval_status']);
+            update_post_meta($post_id, 'cd_approved', $approval_status);
+
+            // Update post status based on approval
+            $current_status = get_post_status($post_id);
+            if ($approval_status === '1' && $current_status !== 'publish') {
+                wp_update_post(array('ID' => $post_id, 'post_status' => 'publish'));
+            } elseif ($approval_status === '0' && $current_status !== 'pending') {
+                wp_update_post(array('ID' => $post_id, 'post_status' => 'pending'));
+            }
+        }
+    }
+
+    public static function handle_status_transition($new_status, $old_status, $post)
+    {
+        if ($post->post_type === 'family_head') {
+            if ($new_status === 'publish' && $old_status !== 'publish') {
+                update_post_meta($post->ID, 'cd_approved', '1');
+            } elseif ($new_status === 'pending' && $old_status !== 'pending') {
+                update_post_meta($post->ID, 'cd_approved', '0');
+            }
+        }
     }
 
     public static function activate()
     {
         self::register_cpt();
         flush_rewrite_rules();
+    }
+
+    public static function enqueue_scripts($hook)
+    {
+        if ($hook === 'post.php' || $hook === 'post-new.php') {
+            wp_enqueue_media();
+        }
     }
 
     public static function deactivate()

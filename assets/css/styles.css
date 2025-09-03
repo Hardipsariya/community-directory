@@ -26,3 +26,57 @@
 .node .desc {
     font-size: 0.8em;
 }
+
+/* jQuery Validate error styles */
+label.error {
+    color: red;
+}
+
+/* Community Directory Row View Styles */
+#cd-family-list.cd-row-view {
+    display: block !important; /* Override any grid layout */
+    width: 100% !important;
+    grid-template-columns: none !important; /* Remove grid columns completely */
+    gap: 0 !important; /* Remove grid gaps */
+}
+
+#cd-family-list.cd-row-view .cd-family-row {
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease-in-out;
+    width: 100% !important; /* Make each family row full width */
+    display: block !important; /* Ensure each row is a block element */
+    float: none !important;
+    clear: both !important;
+    margin-bottom: 1rem !important; /* Add consistent spacing */
+    box-sizing: border-box !important; /* Prevent overflow */
+    grid-column: span 1 !important; /* Override grid column span */
+}
+
+#cd-family-list.cd-row-view .cd-family-row:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-color: #d1d5db;
+}
+
+#cd-family-list.cd-row-view .cd-family-row .flex-shrink-0 img {
+    border: 2px solid #f3f4f6;
+}
+
+#cd-family-list.cd-row-view .cd-family-row:hover .flex-shrink-0 img {
+    border-color: #d1d5db;
+}
+
+/* Responsive adjustments for row view */
+@media (max-width: 768px) {
+    #cd-family-list.cd-row-view .cd-family-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #cd-family-list.cd-row-view .cd-family-row .flex-shrink-0 {
+        margin-bottom: 1rem;
+    }
+
+    #cd-family-list.cd-row-view .cd-family-row .flex-grow {
+        width: 100%;
+    }
+}
