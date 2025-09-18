@@ -59,7 +59,23 @@ jQuery(document).ready(function ($) {
                     <option value="female">Female</option>
                 </select></p>
                 <p><label class="block">Relation with Head<span class="text-red-500">*</span></label>
-                <input type="text" name="cd_family_members[${memberCount}][relation]" required class="border p-2 w-full"></p>
+                <select name="cd_family_members[${memberCount}][relation]" required class="border p-2 w-full">
+                    <option value="">Select Relation</option>
+                    <option value="Mother">Mother</option>
+                    <option value="Father">Father</option>
+                    <option value="Son">Son</option>
+                    <option value="Daughter">Daughter</option>
+                    <option value="Wife">Wife</option>
+                    <option value="Husband">Husband</option>
+                    <option value="Brother">Brother</option>
+                    <option value="Sister">Sister</option>
+                    <option value="Grandmother">Grandmother</option>
+                    <option value="Grandfather">Grandfather</option>
+                    <option value="Uncle">Uncle</option>
+                    <option value="Aunt">Aunt</option>
+                    <option value="Nephew">Nephew</option>
+                    <option value="Niece">Niece</option>
+                </select></p>
                 <button type="button" class="remove-member bg-red-500 text-white p-2 rounded">Remove Member</button>
             </div>
         `);
@@ -180,4 +196,86 @@ jQuery(document).ready(function ($) {
     editButton.on('click', function () {
         fileInput.click();
     });
+
+    // Family Tree Modal and AJAX loading
+    $(document).on('click', '.cd-view-tree', function(e) {
+        e.preventDefault();
+        var familyId = $(this).data('family-id');
+        if (!familyId) {
+            alert('Invalid family ID');
+            return;
+        }
+
+        // Show modal
+        $('#cd-family-tree-modal').removeClass('hidden');
+
+        // Set modal title
+        var familyName = $(this).closest('.cd-family-row, .bg-white').find('h3').first().text();
+        $('#modal-family-title').text(familyName + "'s Family Tree");
+
+        // Show loading spinner
+        $('#cd-family-tree-container').html('<div class="flex items-center justify-center h-full"><div class="text-center"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div><p class="text-gray-600">Loading family tree...</p></div></div>');
+
+        // AJAX request to get family tree data
+        $.ajax({
+            url: cd_ajax.ajax_url,
+            method: 'POST',
+            data: {
+                action: 'cd_get_family_tree',
+                family_id: familyId,
+                nonce: cd_ajax.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    var treeData = response.data;
+                    renderFamilyTree(treeData);
+                } else {
+                    $('#cd-family-tree-container').html('<p class="text-red-600 text-center p-4">' + response.data + '</p>');
+                }
+            },
+            error: function() {
+                $('#cd-family-tree-container').html('<p class="text-red-600 text-center p-4">Error loading family tree.</p>');
+            }
+        });
+    });
+
+    // Close modal
+    $('#cd-close-modal').on('click', function() {
+        $('#cd-family-tree-modal').addClass('hidden');
+        $('#cd-family-tree-container').empty();
+    });
+
+    // Function to render family tree using Treant.js
+    function renderFamilyTree(treeData) {
+        // Clear previous tree
+        $('#cd-family-tree-container').empty();
+
+        // Prepare Treant config
+        var config = {
+            chart: {
+                container: "#cd-family-tree-container",
+                levelSeparation: 40,
+                nodeAlign: "CENTER",
+                connectors: {
+                    type: "step",
+                    style: {
+                        "stroke-width": 2,
+                        "stroke": "#94a3b8"
+                    }
+                },
+                node: {
+                    HTMLclass: "family-node",
+                    collapsable: true
+                }
+            },
+            nodeStructure: treeData
+        };
+
+        // Initialize Treant
+        try {
+            new Treant(config);
+        } catch (e) {
+            $('#cd-family-tree-container').html('<p class="text-red-600 text-center p-4">Error rendering family tree: ' + e.message + '</p>');
+        }
+    }
 });

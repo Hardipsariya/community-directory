@@ -1,0 +1,77 @@
+.family-node {
+    padding: 12px 16px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    min-width: 120px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.family-node .name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.family-node .title {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* Hide virtual root node */
+.virtual-root > .node {
+    display: none;
+}
+
+/* Family head styling */
+.family-head-node > .node {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-color: #f59e0b;
+    font-weight: 700;
+}
+
+/* Parent node styling (appears above family head) */
+.parent-node > .node {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-color: #3b82f6;
+}
+
+/* Grandparent node styling */
+.grandparent-node > .node {
+    background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+    border-color: #8b5cf6;
+}
+
+/* Sibling node styling (same level) */
+.sibling-node > .node {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-color: #22c55e;
+}
+
+/* Spouse node styling (same level) */
+.spouse-node > .node {
+    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+    border-color: #ec4899;
+}
+
+/* Child node styling (below level) */
+.child-node > .node {
+    background: linear-gradient(135deg, #fefce8 0%, #fef08a 100%);
+    border-color: #eab308;
+}
+
+/* Grandchild node styling */
+.grandchild-node > .node {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    border-color: #6b7280;
+}
+
+/* Other relations styling */
+.other-node > .node {
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    border-color: #d1d5db;
+}

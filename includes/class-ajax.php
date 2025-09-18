@@ -9,6 +9,8 @@ class CD_AJAX
     {
         add_action('wp_ajax_cd_search_filter', array(__CLASS__, 'handle_search_filter'));
         add_action('wp_ajax_nopriv_cd_search_filter', array(__CLASS__, 'handle_search_filter'));
+        add_action('wp_ajax_cd_get_family_tree', array(__CLASS__, 'get_family_tree'));
+        add_action('wp_ajax_nopriv_cd_get_family_tree', array(__CLASS__, 'get_family_tree'));
     }
 
     public static function handle_search_filter()
@@ -223,5 +225,22 @@ class CD_AJAX
         }
         wp_reset_postdata();
         wp_send_json_success(ob_get_clean());
+    }
+
+    public static function get_family_tree()
+    {
+        if (!isset($_POST['family_id']) || !wp_verify_nonce($_POST['nonce'], 'cd_nonce')) {
+            wp_send_json_error(__('Security check failed', CD_TEXT_DOMAIN));
+        }
+
+        $family_id = intval($_POST['family_id']);
+
+        if (get_post_status($family_id) !== 'publish') {
+            wp_send_json_error(__('Family not found or not approved', CD_TEXT_DOMAIN));
+        }
+
+        $tree_data = CD_Family_Tree::get_tree_data($family_id);
+
+        wp_send_json_success($tree_data);
     }
 }

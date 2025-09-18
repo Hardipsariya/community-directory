@@ -181,6 +181,7 @@ class CD_Admin
                 $display_mode = get_option('cd_display_mode', 'card');
                 $education_options = get_option('cd_education_options', array('High School', 'Bachelor', 'Master', 'PhD'));
                 $business_industry_options = get_option('cd_business_industry_options', array('Furniture', 'Tailor'));
+                $relation_options = get_option('cd_relation_options', array('Mother', 'Father', 'Son', 'Daughter', 'Wife', 'Husband', 'Brother', 'Sister', 'Grandmother', 'Grandfather', 'Uncle', 'Aunt', 'Nephew', 'Niece'));
                 ?>
                 <h2><?php _e('Frontend Display Fields', CD_TEXT_DOMAIN); ?></h2>
                 <p><label><input type="checkbox" name="cd_display_fields[name]" value="1"
@@ -227,6 +228,17 @@ class CD_Admin
                 </div>
                 <button type="button" id="add-business-industry-option" class="button"><?php _e('Add Business Industry Option', CD_TEXT_DOMAIN); ?></button>
 
+                <h2><?php _e('Relation Options', CD_TEXT_DOMAIN); ?></h2>
+                <div id="relation-options-container">
+                    <?php foreach ($relation_options as $index => $option) : ?>
+                        <div class="relation-option mb-2 flex items-center gap-2">
+                            <input type="text" name="cd_relation_options[]" value="<?php echo esc_attr($option); ?>" class="p-2 border w-full" />
+                            <button type="button" class="button remove-relation-option"><?php _e('Remove', CD_TEXT_DOMAIN); ?></button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" id="add-relation-option" class="button"><?php _e('Add Relation Option', CD_TEXT_DOMAIN); ?></button>
+
                 <h2><?php _e('Frontend Display Mode', CD_TEXT_DOMAIN); ?></h2>
                 <p><label><input type="radio" name="cd_display_mode" value="card" <?php checked($display_mode, 'card'); ?> >
                         <?php _e('Card View', CD_TEXT_DOMAIN); ?></label></p>
@@ -265,6 +277,18 @@ class CD_Admin
 
         $(document).on('click', '.remove-business-industry-option', function() {
             $(this).closest('.business-industry-option').remove();
+        });
+
+        $('#add-relation-option').on('click', function() {
+            var newOption = $('<div class="relation-option mb-2 flex items-center gap-2">' +
+                '<input type="text" name="cd_relation_options[]" class="p-2 border w-full" />' +
+                '<button type="button" class="button remove-relation-option"><?php _e('Remove', CD_TEXT_DOMAIN); ?></button>' +
+                '</div>');
+            $('#relation-options-container').append(newOption);
+        });
+
+        $(document).on('click', '.remove-relation-option', function() {
+            $(this).closest('.relation-option').remove();
         });
 
         // Handle auto-publish radio buttons
@@ -328,6 +352,14 @@ class CD_Admin
             }
         ));
         register_setting('cd_settings_group', 'cd_business_industry_options', array(
+            'sanitize_callback' => function ($value) {
+                if (is_array($value)) {
+                    return array_filter(array_map('sanitize_text_field', $value));
+                }
+                return array();
+            }
+        ));
+        register_setting('cd_settings_group', 'cd_relation_options', array(
             'sanitize_callback' => function ($value) {
                 if (is_array($value)) {
                     return array_filter(array_map('sanitize_text_field', $value));

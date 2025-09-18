@@ -149,7 +149,17 @@
                     </tr>
                     <tr>
                         <th scope="row"><label><?php _e('Relation with Head', CD_TEXT_DOMAIN); ?><span style="color: red;">*</span></label></th>
-                        <td><input type="text" name="cd_family_members[0][relation]" required class="regular-text"></td>
+                        <td>
+                            <select name="cd_family_members[0][relation]" required>
+                                <option value=""><?php _e('Select Relation', CD_TEXT_DOMAIN); ?></option>
+                                <?php
+                                $relation_options = get_option('cd_relation_options', array('Mother', 'Father', 'Son', 'Daughter', 'Wife', 'Husband', 'Brother', 'Sister', 'Grandmother', 'Grandfather', 'Uncle', 'Aunt', 'Nephew', 'Niece'));
+                                foreach ($relation_options as $option) {
+                                    echo '<option value="' . esc_attr($option) . '">' . esc_html($option) . '</option>';
+                                }
+                                ?>
+                            </select>
+                        </td>
                     </tr>
                 </table>
             </div>
@@ -288,7 +298,17 @@ jQuery(document).ready(function($) {
                     </tr>
                     <tr>
                         <th scope="row"><label><?php _e('Relation with Head', CD_TEXT_DOMAIN); ?><span style="color: red;">*</span></label></th>
-                        <td><input type="text" name="cd_family_members[${memberCount}][relation]" required class="regular-text"></td>
+                        <td>
+                            <select name="cd_family_members[${memberCount}][relation]" required>
+                                <option value=""><?php _e('Select Relation', CD_TEXT_DOMAIN); ?></option>
+                                <?php
+                                $relation_options = get_option('cd_relation_options', array('Mother', 'Father', 'Son', 'Daughter', 'Wife', 'Husband', 'Brother', 'Sister', 'Grandmother', 'Grandfather', 'Uncle', 'Aunt', 'Nephew', 'Niece'));
+                                foreach ($relation_options as $option) {
+                                    echo '<option value="' . esc_attr($option) . '">' . esc_html($option) . '</option>';
+                                }
+                                ?>
+                            </select>
+                        </td>
                     </tr>
                 </table>
             </div>

@@ -192,8 +192,7 @@ $display_mode = get_option('cd_display_mode', 'card');
                         </div>
 
                         <div class="flex-shrink-0">
-                            <a href="<?php echo esc_url(add_query_arg('family_id', get_the_ID(), home_url('/family-tree'))); ?>"
-                                class="text-blue-500 hover:underline whitespace-nowrap"><?php _e('View Family', CD_TEXT_DOMAIN); ?></a>
+                            <a href="#" class="text-blue-500 hover:underline cd-view-tree whitespace-nowrap" data-family-id="<?php echo get_the_ID(); ?>"><?php _e('View Family Tree', CD_TEXT_DOMAIN); ?></a>
                         </div>
                     </div>
                 </div>
@@ -246,8 +245,7 @@ $display_mode = get_option('cd_display_mode', 'card');
                             ?>
                         </div>
                     <?php endif; ?>
-                    <a href="<?php echo esc_url(add_query_arg('family_id', get_the_ID(), home_url('/family-tree'))); ?>"
-                        class="text-blue-500 hover:underline"><?php _e('View Family', CD_TEXT_DOMAIN); ?></a>
+                    <a href="#" class="text-blue-500 hover:underline cd-view-tree" data-family-id="<?php echo get_the_ID(); ?>"><?php _e('View Family Tree', CD_TEXT_DOMAIN); ?></a>
                 </div>
                 <?php
             }
@@ -261,3 +259,25 @@ if ($display_mode === 'row') {
     // Add row view styling or logic if needed
 }
 ?>
+
+<!-- Family Tree Modal -->
+<div id="cd-family-tree-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-xl font-bold" id="modal-family-title"><?php _e('Family Tree', CD_TEXT_DOMAIN); ?></h2>
+                <button id="cd-close-modal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div class="p-4 overflow-auto max-h-[calc(90vh-120px)]">
+                <div id="cd-family-tree-container" class="w-full h-96 bg-gray-50 rounded border">
+                    <div class="flex items-center justify-center h-full">
+                        <div class="text-center">
+                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                            <p class="text-gray-600"><?php _e('Loading family tree...', CD_TEXT_DOMAIN); ?></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

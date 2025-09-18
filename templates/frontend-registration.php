@@ -136,7 +136,15 @@
                 </p>
                 <p><label class="block"><?php _e('Relation with Head', CD_TEXT_DOMAIN); ?><span
                             class="text-red-500">*</span></label>
-                    <input type="text" name="cd_family_members[0][relation]" class="p-2 border w-full">
+                    <select name="cd_family_members[0][relation]" class="p-2 border w-full">
+                        <option value=""><?php _e('Select Relation', CD_TEXT_DOMAIN); ?></option>
+                        <?php
+                        $relation_options = get_option('cd_relation_options', array('Mother', 'Father', 'Son', 'Daughter', 'Wife', 'Husband', 'Brother', 'Sister', 'Grandmother', 'Grandfather', 'Uncle', 'Aunt', 'Nephew', 'Niece'));
+                        foreach ($relation_options as $option) {
+                            echo '<option value="' . esc_attr($option) . '">' . esc_html($option) . '</option>';
+                        }
+                        ?>
+                    </select>
                 </p>
             </div>
         </div>
